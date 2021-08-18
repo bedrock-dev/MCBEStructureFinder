@@ -14,4 +14,6 @@ uint32_t *mt2_get(uint32_t seed);
 
 uint32_t *mt_n_get(uint32_t seed, int n);
 
+double int_2_float(uint32_t);
+
 #endif //BSSTRUCTURRE_BEDRNG_H

@@ -9,6 +9,11 @@
 #include "cubiomes/util.h"
 #include "bedrng.h"
 #include <stdio.h>
+#include <math.h>
+
+static int max(int x, int z) {
+    return x < z ? z : x;
+}
 
 static int find_in_array(int target, const int *biomes, size_t n) {
     for (int i = 0; i < n; i++) {
@@ -26,22 +31,20 @@ static uint32_t cal_structure_seed(uint32_t worldSeed, int salt, int x, int z) {
 static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *filter, size_t n) {
     if (!layer)
         return 0;
-    /**
-     * Original: use a 4*4 resolution to check
-//    int x0 = (px - r) >> 2;
-//    int z0 = (pz - r) >> 2;
-//    int w = ((r + px) >> 2) - x0 + 1;
-//    int h = ((r + pz) >> 2) - z0 + 1;
-//    int *biomeIds = allocCache(layer, w, h);
-//    genArea(layer, biomeIds, x0, z0, w, h);
-//    const int area = w * h;
-**/
-    int x0 = px - r;
-    int z0 = pz - r;
-    int w = 2 * r + 1;
-    int *biomeIds = allocCache(layer, w, w);
-    genArea(layer, biomeIds, x0, z0, w, w);
-    const int area = w * w;
+
+    //  Original: use a 4*4 resolution to check
+    int x0 = (px - r) >> 2;
+    int z0 = (pz - r) >> 2;
+    int w = ((r + px) >> 2) - x0 + 1;
+    int h = ((r + pz) >> 2) - z0 + 1;
+    int *biomeIds = allocCache(layer, w, h);
+    genArea(layer, biomeIds, x0, z0, w, h);
+    const int area = w * h;
+//    int z0 = pz - r;
+//    int w = 2 * r + 1;
+//    int *biomeIds = allocCache(layer, w, w);
+//    genArea(layer, biomeIds, x0, z0, w, w);
+//    const int area = w * w;
     for (int i = 0; i < area; i++) {
         if (!find_in_array(biomeIds[i], filter, n)) {
             return 0;
@@ -50,6 +53,11 @@ static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *fi
     return 1;
 }
 
+
+static struct ChunkPos cal_spawn_position(uint32_t seed) {
+
+
+}
 
 int structure_check_1(const struct BEStructureConfig cfg, uint32_t worldSeed, struct ChunkPos chunkPos) {
     if (chunkPos.x < 0)
@@ -156,6 +164,52 @@ int check_random_scattered(enum BEStructureType type, struct Layer *layer, uint3
 
 }
 
+static struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *layer) {
+    struct ChunkPos *positions = malloc(sizeof(struct ChunkPos) * 3);
+    uint32_t *mt = mt_n_get(seed, 2);
+    int count = 0;
+    double angle = 6.2831855 * int_2_float(mt[0]);
+    uint32_t chunk_dist = mt[1] % 16 + 40;
+    while (count < 3) {
+        double cos_v = cos(angle);
+        int cx = floor(cos_v * chunk_dist);
+        double sin_v = sin(angle);
+        int cz = floor(sin_v * chunk_dist);
+        int found = 0;
+        for (int chunkX = cx - 8; chunkX < cx + 8; ++chunkX) {
+            for (int chunkZ = cz - 8; chunkZ < cz + 8; ++chunkZ) {
+                //village near
+                struct ChunkPos pos = {chunkX, chunkZ};
+                if (check_position(BEVillage, layer, seed, pos)) {
+                    found = 1;
+                    positions[count].x = chunkX;
+                    positions[count].z = chunkZ;
+                    ++count;
+                    break;
+                }
+            }
+        }
+        if (found) {
+            angle += 1.8849558;
+            chunk_dist += 8;
+        } else {
+            angle += 0.78539819;
+            chunk_dist += 4;
+        }
+    }
+    return positions;
+}
+
+//error
+int check_minshaft(uint32_t seed, struct ChunkPos pos) {
+    uint32_t *mt = mt_n_get(seed, 2);
+    uint32_t chunk_seed = seed ^(mt[1] * pos.z) ^(mt[0] * pos.x);
+    uint32_t *mt2 = mt_n_get(chunk_seed, 3);
+    double rf = int_2_float(mt2[1]);
+    if (rf >= 0.004) return 0;
+    return mt2[2] % 80 < max(abs(pos.x), abs(pos.z));
+}
+
 int check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed, struct ChunkPos pos) {
     if (type == BEJungleTemple || type == BEDesertTemple || type == BEWitchHut || type == BEIgloo) {
         return check_random_scattered(type, layer, seed, pos);
@@ -170,7 +224,7 @@ int check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed
         case BEStronghold:
             return 0;
         case BEMineshaft:
-            return 0;
+            return check_minshaft(seed, pos);
         case BEOceanMonument:
             if (structure_check_1(BE_OCEAN_MONUMENT, seed, pos)) {
                 return struct_position_valid(BEOceanMonument, layer, pos);
@@ -213,32 +267,69 @@ int check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed
     return 0;
 }
 
+void biome_test(uint32_t seed, int l, const char *path, int width) {
+    unsigned char biomeColors[256][3];
 
-int main() {
+    // Initialize a color map for biomes.
+    initBiomeColors(biomeColors);
 
-//    for (int i = 0; i < L_NUM; i++) {
-//        char path[128];
-//        sprintf(path, "img/%d.ppm", i);
-//        biome_test(100, i, path);
-//    }
-
-    // biome_test(100, 53, "a.ppm");
-    // range_test(0, 0, 2);
-    uint32_t seed = 100;
+    // Initialize a stack of biome layers.
     LayerStack g;
     setupOverworldGenerator(&g, MC_1_17);
     // Extract the desired layer.
-    Layer *layer = &g.layers[L_NUM - 1];
+    Layer *layer = &g.layers[l];
+    int areaX = 0, areaZ = 0;
+    unsigned int areaWidth = width, areaHeight = width;
+    unsigned int scale = 1;
+    unsigned int imgWidth = areaWidth * scale, imgHeight = areaHeight * scale;
+
+    // Allocate a sufficient buffer for the biomes and for the image pixels.
+    int *biomeIds = allocCache(layer, areaWidth, areaHeight);
+    unsigned char *rgb = (unsigned char *) malloc(3 * imgWidth * imgHeight);
+
+    // Apply the seed only for the required layers and generate the area.
+    setLayerSeed(layer, seed);
+    genArea(layer, biomeIds, areaX, areaZ, areaWidth, areaHeight);
+
+    // Map the biomes to a color buffer and save to an image.
+    biomesToImage(rgb, biomeColors, biomeIds, areaWidth, areaHeight, scale, 2);
+    savePPM(path, rgb, imgWidth, imgHeight);
+    // Clean up.
+    free(biomeIds);
+    free(rgb);
+}
+
+
+int main() {
+
+
+    //
+//    for (int i = 0; i < L_NUM; i++) {
+//        char path[128];
+//        sprintf(path, "img/%d.ppm", i);
+//        biome_test(1, i, path, 128);
+//    }
+
+    // range_test(0, 0, 2);
+    uint32_t seed = 1;
+    LayerStack g;
+    setupOverworldGenerator(&g, MC_1_17);
+    // Extract the desired layer.
+    Layer *layer = &g.layers[L_NUM - 2];
     setLayerSeed(layer, seed);
     for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 200; j++) {
+        for (int j = 0; j < 10; j++) {
             struct ChunkPos pos = {i, j};
-            if (check_position(BENetherFortress, layer, seed, pos)) {
-                printf("%d %d\n", i * 16 + 8, j * 16 + 8);
+            if (check_position(BEMineshaft, layer, seed, pos)) {
+                printf("%d %d\n", i * 16, j * 16);
             }
         }
     }
+//    struct ChunkPos *p = generate_stronghold_positions(seed, layer);
+//    for (int i = 0; i < 3; i++) {
+//        printf("%d %d\n", p[i].x * 16,
+//               p[i].z * 16);
+//    }
     return 0;
 }
-
 
