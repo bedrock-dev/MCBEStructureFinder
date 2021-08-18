@@ -5,7 +5,7 @@ Minecraft bedrock edition structure finders(updating)
 ## Progress
 
 - [X] Village,
-- [ ] Stronghold,
+- [X] Stronghold,
 - [ ] Mineshaft,
 - [X] DesertTemple,
 - [X] WitchHut,
