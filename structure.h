@@ -52,7 +52,10 @@ static const struct BEStructureConfig BE_WOODLAND_MANSION = {80, 60, 10387319}; 
 static const struct BEStructureConfig BE_END_CITY = {20, 9, 10387313}; //末地城市
 static const struct BEStructureConfig BE_OCEAN_MONUMENT = {32, 27, 10387313}; //海底神殿
 static const struct BEStructureConfig BE_NETHER_STRUCTURE = {30, 26, 30084232};
-
+static const struct BEStructureConfig BE_SHIP_WREAK = {10, 5, 1};
+static const struct BEStructureConfig BE_OCEAN_RUIN = {12, 5, 14357621};
+static const struct BEStructureConfig BE_RUIN_PORTAL_NETHER = {25, 15, 40552231};
+static const struct BEStructureConfig BE_RUIN_PORTAL_OVERWORLD = {40, 25, 40552231};
 
 void biome_test(uint32_t seed, int l, const char *path, int width);
 

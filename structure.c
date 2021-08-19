@@ -168,6 +168,10 @@ static int nether_fortress_check_1_14(uint32_t worldseed, struct ChunkPos pos) {
 
 }
 
+static int check_ship_wreak() {
+    return 1;
+}
+
 
 static int struct_position_valid(enum BEStructureType type, Layer *g, struct ChunkPos pos) {
     int x = pos.x * 16 + 8;
@@ -269,6 +273,9 @@ int check_minshaft(uint32_t seed, struct ChunkPos pos) {
 }
 
 int nether_check_position(enum BEStructureType type, Layer *layer, uint32_t worldSeed, struct ChunkPos chunkPos) {
+    if (type == BERuindPortal) {
+        return structure_check_2(BE_RUIN_PORTAL_NETHER, worldSeed, chunkPos);
+    }
     if (type != BEBastion && type != BENetherFortress) {
         return 0;
     }
@@ -325,9 +332,12 @@ int overworld_check_position(enum BEStructureType type, struct Layer *layer, uin
             } else {
                 return 0;
             }
-            break;
         case BEOceanRuin:
-            break;
+            if (structure_check_1(BE_OCEAN_RUIN, seed, pos)) {
+                return struct_position_valid(BEOceanRuin, layer, pos);
+            } else {
+                return 0;
+            }
         case BEWoodlandMansion:
             if (structure_check_1(BE_WOODLAND_MANSION, seed, pos)) {
                 return struct_position_valid(BEWoodlandMansion, layer, pos);
@@ -335,9 +345,13 @@ int overworld_check_position(enum BEStructureType type, struct Layer *layer, uin
                 return 0;
             }
         case BEShipwreck:
-            break;
+            if (structure_check_1(BE_SHIP_WREAK, seed, pos)) {
+                return struct_position_valid(BEShipwreck, layer, pos);
+            } else {
+                return 0;
+            }
         case BERuindPortal:
-            break;
+            return structure_check_2(BE_RUIN_PORTAL_OVERWORLD, seed, pos);
         case BEBuriedTreasure:
             if (structure_check_2(BE_BURIED_TREASURE, seed, pos)) {
                 return struct_position_valid(BEBuriedTreasure, layer, pos);
@@ -346,15 +360,14 @@ int overworld_check_position(enum BEStructureType type, struct Layer *layer, uin
         case BEPillagerOutpost:
             if (structure_check_1(BE_PILLAGER_OUTPOST, seed, pos)) {
                 return struct_position_valid(BEPillagerOutpost, layer, pos);
+            } else {
+                return 0;
             }
             break;
-        case BENetherFortress:
-            return nether_fortress_check_1_14(seed, pos);
-        case BEBastion:
-            break;
         case BEEndcity:
-            break;
+            return 0;
         default:
+            return 0;
             break;
     }
     return 0;
@@ -394,7 +407,6 @@ void biome_test(uint32_t seed, int l, const char *path, int width) {
 
 
 int main() {
-
     uint32_t seed = 1;
     LayerStack g;
     setupOverworldGenerator(&g, MC_1_17);
@@ -404,16 +416,16 @@ int main() {
     for (int i = 0; i < 100; i++) {
         for (int j = 0; j < 100; j++) {
             struct ChunkPos pos = {i, j};
-            if (nether_check_position(BENetherFortress, layer, seed, pos)) {
+            if (nether_check_position(BERuindPortal, layer, seed, pos)) {
                 printf("%d %d\n", i * 16 + 8, j * 16 + 8);
             }
         }
     }
-    struct ChunkPos *p = generate_stronghold_positions(seed, layer);
-    for (int i = 0; i < 3; i++) {
-        printf("%d %d\n", p[i].x * 16,
-               p[i].z * 16);
-    }
+//    struct ChunkPos *p = generate_stronghold_positions(seed, layer);
+//    for (int i = 0; i < 3; i++) {
+//        printf("%d %d\n", p[i].x * 16,
+//               p[i].z * 16);
+//    }
 
     return 0;
 }

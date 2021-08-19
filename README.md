@@ -16,7 +16,7 @@ Minecraft bedrock edition structure finders(updating)
 - [ ] OceanRuin,
 - [X] WoodlandMansion,
 - [ ] Shipwreck,
-- [ ] RuindPortal,
+- [X] RuindPortal,
 - [X] BuriedTreasure,
 - [X] PillagerOutpost,
 - [X] NetherFortress,
