@@ -51,7 +51,21 @@ static const struct BEStructureConfig BE_VILLAGE = {27, 17, 10387312}; //村庄
 static const struct BEStructureConfig BE_WOODLAND_MANSION = {80, 60, 10387319}; //林地府邸
 static const struct BEStructureConfig BE_END_CITY = {20, 9, 10387313}; //末地城市
 static const struct BEStructureConfig BE_OCEAN_MONUMENT = {32, 27, 10387313}; //海底神殿
+static const struct BEStructureConfig BE_NETHER_STRUCTURE = {30, 26, 30084232};
 
+
+void biome_test(uint32_t seed, int l, const char *path, int width);
+
+static const uint16_t BSZ = sizeof(enum BiomeID);
+
+static const enum BiomeID WORLD_SPAWN_ALLOW_BIOME[] = {
+        forest,
+        plains,
+        taiga_hills,
+        forestHills,
+        jungle_hills,
+        jungle
+};
 
 static const enum BiomeID VILLAGE_ALLOW_BIOME[] = {plains, savanna, icePlains, taiga, taiga_hills, coldTaiga,
                                                    coldTaigaHills, desert};
@@ -95,5 +109,5 @@ static const enum BiomeID PILLAGER_OUTPOST_ALLOW[] = {
         plains, sunflower_plains, savanna, icePlains, taiga_hills, taiga, coldTaiga, coldTaigaHills, desert
 };
 
-int check_position(enum BEStructureType tpye, Layer *layer, uint32_t seed, struct ChunkPos p);
+int overworld_check_position(enum BEStructureType type, Layer *layer, uint32_t seed, struct ChunkPos pos);
 

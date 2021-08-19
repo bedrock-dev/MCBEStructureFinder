@@ -4,8 +4,9 @@ Minecraft bedrock edition structure finders(updating)
 
 ## Progress
 
+- [X] WorldSpawn
 - [X] Village,
-- [ ] Stronghold,
+- [X] Stronghold,
 - [ ] Mineshaft,
 - [X] DesertTemple,
 - [X] WitchHut,
@@ -18,8 +19,8 @@ Minecraft bedrock edition structure finders(updating)
 - [ ] RuindPortal,
 - [X] BuriedTreasure,
 - [X] PillagerOutpost,
-- [ ] NetherFortress,
-- [ ] Bastion,
+- [X] NetherFortress,
+- [X] Bastion,
 - [ ] Endcity
 - [ ] ...
 

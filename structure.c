@@ -15,7 +15,16 @@ static int max(int x, int z) {
     return x < z ? z : x;
 }
 
-static int find_in_array(int target, const int *biomes, size_t n) {
+static int get_biome_at_pos(Layer *layer, int x, int z) {
+    int *ids = allocCache(layer, 1, 1);
+    genArea(layer, ids, x, z, 1, 1);
+    int biomeID = ids[0];
+    free(ids);
+    return biomeID;
+    return 0;
+}
+
+static int find_in_array(int target, const int biomes[], size_t n) {
     for (int i = 0; i < n; i++) {
         if (target == biomes[i]) {
             return 1;
@@ -54,10 +63,54 @@ static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *fi
 }
 
 
-static struct ChunkPos cal_spawn_position(uint32_t seed) {
-
-
+int is_valid_spawn_biome(enum BiomeID biome_id) {
+    return find_in_array(biome_id, WORLD_SPAWN_ALLOW_BIOME, sizeof(WORLD_SPAWN_ALLOW_BIOME) / BSZ);
 }
+
+//thanks for ddf
+//There is an error within tens of meters
+static struct ChunkPos find_spawn_position(uint32_t seed) {
+    LayerStack g;
+    setupOverworldGenerator(&g, MC_1_17);
+    Layer *layer = &g.layers[L_NUM - 2];
+    setLayerSeed(layer, seed);
+    struct ChunkPos pos = {-1, -1};
+    int step = 0;
+    while (1) {
+        int *biomeIds = allocCache(layer, 10, 10);
+        genArea(layer, biomeIds, step, 0, 10, 10);
+        for (int zo = 0; zo < 10; zo++) {
+            for (int xo = 0; xo < 10; xo++) {
+                int v7 = biomeIds[xo + 10 * zo];
+                if (is_valid_spawn_biome(v7)) {
+                    if (xo) {
+                        int v6 = biomeIds[(xo - 1) + 10 * zo];
+                        if (is_valid_spawn_biome(v6) && xo + 1 < 10) {
+                            int v5 = biomeIds[(xo + 1) + 10 * zo];
+                            if (is_valid_spawn_biome(v5)) {
+                                if (zo) {
+                                    int v4 = biomeIds[xo * 10 * (zo - 1)];
+                                    if (is_valid_spawn_biome(v4) && zo + 1 < 10) {
+                                        int v3 = biomeIds[xo * 10 * (zo + 1)];
+                                        printf("b is %d\n", v3);
+                                        if (is_valid_spawn_biome(v3)) {
+                                            pos.x = 4 * (xo + step);
+                                            pos.z = zo * 4;
+                                            return pos;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        step += 10;
+        free(biomeIds);
+    }
+}
+
 
 int structure_check_1(const struct BEStructureConfig cfg, uint32_t worldSeed, struct ChunkPos chunkPos) {
     if (chunkPos.x < 0)
@@ -180,7 +233,7 @@ static struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Laye
             for (int chunkZ = cz - 8; chunkZ < cz + 8; ++chunkZ) {
                 //village near
                 struct ChunkPos pos = {chunkX, chunkZ};
-                if (check_position(BEVillage, layer, seed, pos)) {
+                if (overworld_check_position(BEVillage, layer, seed, pos)) {
                     found = 1;
                     positions[count].x = chunkX;
                     positions[count].z = chunkZ;
@@ -200,6 +253,11 @@ static struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Laye
     return positions;
 }
 
+int check_ruined_portal() {
+
+    return 0;
+}
+
 //error
 int check_minshaft(uint32_t seed, struct ChunkPos pos) {
     uint32_t *mt = mt_n_get(seed, 2);
@@ -210,7 +268,43 @@ int check_minshaft(uint32_t seed, struct ChunkPos pos) {
     return mt2[2] % 80 < max(abs(pos.x), abs(pos.z));
 }
 
-int check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed, struct ChunkPos pos) {
+int nether_check_position(enum BEStructureType type, Layer *layer, uint32_t worldSeed, struct ChunkPos chunkPos) {
+    if (type != BEBastion && type != BENetherFortress) {
+        return 0;
+    }
+    struct BEStructureConfig cfg = BE_NETHER_STRUCTURE;
+    if (chunkPos.x < 0)
+        chunkPos.x -= cfg.spacing - 1;
+    if (chunkPos.z < 0)
+        chunkPos.z -= cfg.spacing - 1;
+    uint32_t seed = cal_structure_seed(worldSeed, cfg.salt, chunkPos.x / cfg.spacing, chunkPos.z / cfg.spacing);
+
+    uint32_t *mt = mt_n_get(seed, 3);
+    uint32_t r1 = mt[0] % cfg.spawnRange;
+    uint32_t r2 = mt[1] % cfg.spawnRange;
+    int xOff = chunkPos.x % cfg.spacing;
+    int zOff = chunkPos.z % cfg.spacing;
+    if (xOff < 0)
+        xOff += cfg.spacing - 1;
+    if (zOff < 0)
+        zOff += cfg.spacing - 1;
+    free(mt);
+    if (r1 == xOff && r2 == zOff) {
+
+        return 1;
+        //todo : biome check
+//        if (mt[2] % 6 >= 2) {
+//            return type == BEBastion;
+//        } else {
+//            return type == BENetherFortress;
+//        }
+    } else {
+        return 0;
+    }
+
+}
+
+int overworld_check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed, struct ChunkPos pos) {
     if (type == BEJungleTemple || type == BEDesertTemple || type == BEWitchHut || type == BEIgloo) {
         return check_random_scattered(type, layer, seed, pos);
     }
@@ -240,7 +334,6 @@ int check_position(enum BEStructureType type, struct Layer *layer, uint32_t seed
             } else {
                 return 0;
             }
-            break;
         case BEShipwreck:
             break;
         case BERuindPortal:
@@ -280,7 +373,7 @@ void biome_test(uint32_t seed, int l, const char *path, int width) {
     Layer *layer = &g.layers[l];
     int areaX = 0, areaZ = 0;
     unsigned int areaWidth = width, areaHeight = width;
-    unsigned int scale = 1;
+    unsigned int scale = 8;
     unsigned int imgWidth = areaWidth * scale, imgHeight = areaHeight * scale;
 
     // Allocate a sufficient buffer for the biomes and for the image pixels.
@@ -302,15 +395,6 @@ void biome_test(uint32_t seed, int l, const char *path, int width) {
 
 int main() {
 
-
-    //
-//    for (int i = 0; i < L_NUM; i++) {
-//        char path[128];
-//        sprintf(path, "img/%d.ppm", i);
-//        biome_test(1, i, path, 128);
-//    }
-
-    // range_test(0, 0, 2);
     uint32_t seed = 1;
     LayerStack g;
     setupOverworldGenerator(&g, MC_1_17);
@@ -318,18 +402,19 @@ int main() {
     Layer *layer = &g.layers[L_NUM - 2];
     setLayerSeed(layer, seed);
     for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 100; j++) {
             struct ChunkPos pos = {i, j};
-            if (check_position(BEMineshaft, layer, seed, pos)) {
-                printf("%d %d\n", i * 16, j * 16);
+            if (nether_check_position(BENetherFortress, layer, seed, pos)) {
+                printf("%d %d\n", i * 16 + 8, j * 16 + 8);
             }
         }
     }
-//    struct ChunkPos *p = generate_stronghold_positions(seed, layer);
-//    for (int i = 0; i < 3; i++) {
-//        printf("%d %d\n", p[i].x * 16,
-//               p[i].z * 16);
-//    }
+    struct ChunkPos *p = generate_stronghold_positions(seed, layer);
+    for (int i = 0; i < 3; i++) {
+        printf("%d %d\n", p[i].x * 16,
+               p[i].z * 16);
+    }
+
     return 0;
 }
 
