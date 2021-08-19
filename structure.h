@@ -112,5 +112,10 @@ static const enum BiomeID PILLAGER_OUTPOST_ALLOW[] = {
         plains, sunflower_plains, savanna, icePlains, taiga_hills, taiga, coldTaiga, coldTaigaHills, desert
 };
 
-int overworld_check_position(enum BEStructureType type, Layer *layer, uint32_t seed, struct ChunkPos pos);
+int overworld_structure_find(enum BEStructureType type, Layer *layer, uint32_t seed, struct ChunkPos pos);
 
+int nether_structure_find(enum BEStructureType type, Layer *layer, uint32_t worldSeed, struct ChunkPos chunkPos);
+
+struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *layer);
+
+struct ChunkPos find_spawn_position(uint32_t seed);

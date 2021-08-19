@@ -12,5 +12,11 @@ add_library(libcubiomes
         cubiomes/util.c
         )
 
-add_executable(Str structure.c bedrng.c)
-target_link_libraries(Str libcubiomes)
+add_library(libbestucture structure.c bedrng.c)
+target_link_libraries(libbestucture libcubiomes)
+
+add_executable(main main.c)
+target_link_libraries(main libbestucture)
+
+
+
