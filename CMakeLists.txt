@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.19)
 project(cubiomes C)
 
 set(CMAKE_C_STANDARD 11)
-
+add_compile_options(-O3)
 include_directories(cubiomes .)
-add_library(libcubiomes
+add_library(cubiomes
         STATIC
         cubiomes/generator.c
         cubiomes/layers.c
@@ -12,11 +12,8 @@ add_library(libcubiomes
         cubiomes/util.c
         )
 
-add_library(libbestucture structure.c bedrng.c)
-target_link_libraries(libbestucture libcubiomes)
+add_library(bestructure structure.c bedrng.c)
+target_link_libraries(bestructure cubiomes)
 
-add_executable(main main.c)
-target_link_libraries(main libbestucture)
-
-
-
+#add_executable(speedrun speedrunseed.c)
+#target_link_libraries(speedrun bestructure)

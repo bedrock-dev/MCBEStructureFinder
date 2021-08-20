@@ -60,6 +60,7 @@ static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *fi
 int is_valid_spawn_biome(enum BiomeID biome_id) {
     return find_in_array(biome_id, WORLD_SPAWN_ALLOW_BIOME, sizeof(WORLD_SPAWN_ALLOW_BIOME) / BSZ);
 }
+
 //thanks for ddf
 //There is an error within tens of meters
 struct ChunkPos find_spawn_position(uint32_t seed) {
@@ -85,7 +86,6 @@ struct ChunkPos find_spawn_position(uint32_t seed) {
                                     int v4 = biomeIds[xo * 10 * (zo - 1)];
                                     if (is_valid_spawn_biome(v4) && zo + 1 < 10) {
                                         int v3 = biomeIds[xo * 10 * (zo + 1)];
-                                        printf("b is %d\n", v3);
                                         if (is_valid_spawn_biome(v3)) {
                                             pos.x = 4 * (xo + step);
                                             pos.z = zo * 4;
@@ -259,9 +259,9 @@ int nether_structure_find(enum BEStructureType type, Layer *layer, uint32_t worl
     free(mt);
     if (r1 == xOff && r2 == zOff) {
         if (mt[2] % 6 >= 2) {
-            return type == BEBastion;
+            return BEBastion;
         } else {
-            return type == BENetherFortress;
+            return BENetherFortress;
         }
     } else {
         return 0;
@@ -348,9 +348,12 @@ struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *laye
                 struct ChunkPos pos = {chunkX, chunkZ};
                 if (overworld_structure_find(BEVillage, layer, seed, pos)) {
                     found = 1;
-                    positions[count].x = chunkX;
-                    positions[count].z = chunkZ;
+                    positions[count].x = chunkX * 16;
+                    positions[count].z = chunkZ * 16;
                     ++count;
+                    if (count == 3) {
+                        return positions;
+                    }
                     break;
                 }
             }

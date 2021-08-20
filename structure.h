@@ -42,6 +42,7 @@ struct ChunkPos {
     int x;
     int z;
 };
+typedef struct ChunkPos Pos;
 
 
 static const struct BEStructureConfig BE_RANDOM_SCATTERED = {32, 24, 14357617}; //女巫房子，丛林，沙漠神殿
