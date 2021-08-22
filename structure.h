@@ -2,6 +2,7 @@
 // Created by xhy on 2021/8/3.
 //
 
+#pragma once
 #ifndef BSSTRUCTURRE_STRUCTURE_H
 #define BSSTRUCTURRE_STRUCTURE_H
 
@@ -9,7 +10,6 @@
 
 #include "cubiomes/layers.h"
 #include "cubiomes/generator.h"
-
 
 enum BEStructureType {
     BEVillage,
@@ -42,6 +42,8 @@ struct ChunkPos {
     int x;
     int z;
 };
+
+
 typedef struct ChunkPos Pos;
 
 
@@ -112,6 +114,9 @@ static const enum BiomeID WOODLAND_MANSION_ALLOW[] = {roofedForest};
 static const enum BiomeID PILLAGER_OUTPOST_ALLOW[] = {
         plains, sunflower_plains, savanna, icePlains, taiga_hills, taiga, coldTaiga, coldTaigaHills, desert
 };
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int overworld_structure_find(enum BEStructureType type, Layer *layer, uint32_t seed, struct ChunkPos pos);
 
@@ -119,4 +124,14 @@ int nether_structure_find(enum BEStructureType type, Layer *layer, uint32_t worl
 
 struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *layer);
 
+int struct_position_valid(enum BEStructureType type, Layer *g, struct ChunkPos pos);
+
 struct ChunkPos find_spawn_position(uint32_t seed);
+
+int contain_biome_only(Layer *layer, int px, int pz, int r, const int *filter, size_t n);
+
+uint32_t cal_structure_seed(uint32_t worldSeed, int salt, int x, int z);
+
+#ifdef __cplusplus
+}
+#endif

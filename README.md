@@ -24,5 +24,8 @@ Minecraft bedrock edition structure finders(updating)
 - [ ] Endcity
 - [ ] ...
 
+
 ## Credit
 - [github.com/reedacartwright/cubiomes](github.com/reedacartwright/cubiomes)
+- Thanks [origin0110](https://github.com/origin0110) and [OEOTYAN](https://github.com/OEOTYAN) for many suggestions on code and algorithm optimization
+- Thanks WANG for providing 3700X

@@ -15,6 +15,11 @@ static int max(int x, int z) {
     return x < z ? z : x;
 }
 
+
+uint32_t cal_structure_seed(uint32_t worldSeed, int salt, int x, int z) {
+    return salt + worldSeed - 245998635 * z - 1724254968 * x;
+}
+
 static int get_biome_at_pos(Layer *layer, int x, int z) {
     int *ids = allocCache(layer, 1, 1);
     genArea(layer, ids, x, z, 1, 1);
@@ -33,11 +38,8 @@ static int find_in_array(int target, const int biomes[], size_t n) {
     return 0;
 }
 
-static uint32_t cal_structure_seed(uint32_t worldSeed, int salt, int x, int z) {
-    return salt + worldSeed - 245998635 * z - 1724254968 * x;
-}
 
-static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *filter, size_t n) {
+int contain_biome_only(Layer *layer, int px, int pz, int r, const int *filter, size_t n) {
     if (!layer)
         return 0;
     //  Original: use a 4*4 resolution to check
@@ -50,12 +52,13 @@ static int contain_biome_only(Layer *layer, int px, int pz, int r, const int *fi
     const int area = w * h;
     for (int i = 0; i < area; i++) {
         if (!find_in_array(biomeIds[i], filter, n)) {
+            free(biomeIds);
             return 0;
         }
     }
+    free(biomeIds);
     return 1;
 }
-
 
 int is_valid_spawn_biome(enum BiomeID biome_id) {
     return find_in_array(biome_id, WORLD_SPAWN_ALLOW_BIOME, sizeof(WORLD_SPAWN_ALLOW_BIOME) / BSZ);
@@ -105,12 +108,18 @@ struct ChunkPos find_spawn_position(uint32_t seed) {
 }
 
 
+int n = 0;
+
 int structure_location_check_1(const struct BEStructureConfig cfg, uint32_t worldSeed, struct ChunkPos chunkPos) {
     if (chunkPos.x < 0)
         chunkPos.x -= cfg.spacing - 1;
     if (chunkPos.z < 0)
         chunkPos.z -= cfg.spacing - 1;
     uint32_t seed = cal_structure_seed(worldSeed, cfg.salt, chunkPos.x / cfg.spacing, chunkPos.z / cfg.spacing);
+    if (n == 0) {
+        printf("s seed is %u\n", seed);
+        n++;
+    }
     uint32_t *mt = mt_n_get(seed, 4);
     uint32_t r1 = mt[0] % cfg.spawnRange;
     uint32_t r2 = mt[1] % cfg.spawnRange;
@@ -206,7 +215,7 @@ int check_minshaft(uint32_t seed, struct ChunkPos pos) {
     return mt2[2] % 80 < max(abs(pos.x), abs(pos.z));
 }
 
-static int struct_position_valid(enum BEStructureType type, Layer *g, struct ChunkPos pos) {
+int struct_position_valid(enum BEStructureType type, Layer *g, struct ChunkPos pos) {
     int x = pos.x * 16 + 8;
     int z = pos.z * 16 + 8;
     const size_t SZ = sizeof(enum BiomeID);
@@ -368,3 +377,7 @@ struct ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *laye
     }
     return positions;
 }
+
+
+
+
