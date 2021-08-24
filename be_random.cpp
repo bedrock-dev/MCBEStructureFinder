@@ -2,16 +2,17 @@
 // Created by xhy on 2021/8/3.
 //
 
-#include "bedrng.h"
-#include <stdlib.h>
+#include "be_random.h"
+#include <cstdlib>
 
 
 #define INIT(L, R, OFF) L = 0x6c078965 * ((R) ^ (R >> 30u)) + (OFF)
 
 uint32_t *mt_n_get(uint32_t seed, int n) {
-    uint32_t *head_arr = malloc(sizeof(uint32_t) * (n + 1));
-    uint32_t *last_arr = malloc(sizeof(uint32_t) * (n + 1));
-    uint32_t *result = malloc(sizeof(uint32_t) * n);
+    //uint32_t *head_arr = (uint32_t *) malloc(sizeof(uint32_t) * (n + 1));
+    auto *head_arr = new uint32_t[n + 1];
+    auto *last_arr = new uint32_t[n + 1];
+    auto *result = new uint32_t[n];
     head_arr[0] = seed;
     for (int i = 1; i < n + 1;
          i++)
