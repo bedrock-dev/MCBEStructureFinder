@@ -1,3 +1,5 @@
+
+# 重构中!!! 当前版本暂时无法使用!!
 # Minecraft Bedrock Structure Finder
 
 Minecraft bedrock edition structure finders(updating)
