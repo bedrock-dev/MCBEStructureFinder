@@ -11,7 +11,6 @@
 #define RUN_ALL_TEST for(auto &t:tests)t();
 
 
-
 #define EXPECT_TRUE(val) assert(val)
 #define EXPECT_FALSE(val) assert(!(val))
 

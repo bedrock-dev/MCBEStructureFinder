@@ -289,6 +289,5 @@ void multi_finder(uint32_t seedMin, uint32_t seedMax) {
     for (auto &t:threads) {
         t.join();
     }
-
 }
 

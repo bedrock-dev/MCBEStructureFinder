@@ -108,17 +108,35 @@ constexpr enum BiomeID OCEAN_MONUMENT_SPAWN_FILTER[] = {
         deep_lukewarm_ocean
 };
 
-constexpr enum BiomeID DESERT_TEMPLE_FILTER[] = {desert, desert_hills, desert_lakes};
+constexpr enum BiomeID DESERT_TEMPLE_FILTER[] = {
+        desert,
+        desert_hills,
+        desert_lakes
+};
 
-constexpr enum BiomeID JUNGLE_TEMPLE_FILTER[] = {jungle, jungle_hills};
-
-constexpr enum BiomeID WITCH_HUT_FILTER[] = {swamp, swampland};
-
-constexpr enum BiomeID IGLOO_FILTER[] = {icePlains, coldTaiga};
+constexpr enum BiomeID JUNGLE_TEMPLE_FILTER[] = {
+        jungle,
+        jungle_hills
+};
+constexpr enum BiomeID WITCH_HUT_FILTER[] = {
+        swamp,
+        swampland
+};
+constexpr enum BiomeID IGLOO_FILTER[] = {
+        icePlains,
+        coldTaiga
+};
 //NOT
-constexpr enum BiomeID BURIED_TREASURE_FILTER[] = {beach, coldBeach, stone_shore, mushroom_field_shore};
+constexpr enum BiomeID BURIED_TREASURE_FILTER[] = {
+        beach,
+        coldBeach,
+        stone_shore,
+        mushroom_field_shore
+};
 
-constexpr enum BiomeID WOODLAND_MANSION_FILTER[] = {roofedForest};
+constexpr enum BiomeID WOODLAND_MANSION_FILTER[] = {
+        roofedForest
+};
 
 constexpr enum BiomeID PILLAGER_OUTPOST_FILTER[] = {
         plains,
@@ -137,7 +155,6 @@ constexpr enum BiomeID PILLAGER_OUTPOST_FILTER[] = {
 int is_feature_chunk_overworld(enum BEStructureType type, Layer *layer, uint32_t seed, ChunkPos pos);
 
 int is_feature_chunk_nether(enum BEStructureType type, Layer *layer, uint32_t worldSeed, ChunkPos chunkPos);
-
 
 //get the first 3 position of stronghold
 ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *layer);

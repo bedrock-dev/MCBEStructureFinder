@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 
-#include "stdint.h"
+#include <cstdint>
 
 
 uint32_t *mt4_get(uint32_t seed);
