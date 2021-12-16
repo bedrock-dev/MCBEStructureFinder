@@ -9,18 +9,15 @@
 extern "C" {
 #endif
 
-
 #include <cstdint>
 
-
 uint32_t *mt4_get(uint32_t seed);
-
 
 uint32_t *mt2_get(uint32_t seed);
 
 uint32_t *mt_n_get(uint32_t seed, int n);
 
-double int_2_float(uint32_t);
+float int_2_float(uint32_t);
 #ifdef __cplusplus
 }
 #endif

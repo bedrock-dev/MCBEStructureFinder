@@ -47,6 +47,6 @@ uint32_t *mt_n_get(uint32_t seed, int n) {
     return result;
 }
 
-double int_2_float(uint32_t x) {
+float int_2_float(uint32_t x) {
     return x * 2.328306436538696e-10;
 }

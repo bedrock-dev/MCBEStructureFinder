@@ -17,7 +17,7 @@ add_library(${CUBIOMES_NAME}
 
 add_library(${FINDER_NAME}
         structure.cpp
-        be_random.cpp
+        ../be_random.cpp
         utils.cpp
         finder.cpp
         new_finder.cpp
