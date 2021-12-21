@@ -16,11 +16,11 @@ add_library(${CUBIOMES_NAME}
         )
 
 add_library(${FINDER_NAME}
-        structure.cpp
+        ../structure.cpp
         ../be_random.cpp
         utils.cpp
         finder.cpp
-        new_finder.cpp
+        ../be_finder.cpp
         )
 target_link_libraries(${FINDER_NAME} ${CUBIOMES_NAME})
 #add_executable(speedrun speedrunseed.c)

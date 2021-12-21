@@ -27,9 +27,17 @@ private:
     Pos get_candicate_pos_in_area(const Pos &p, uint32_t area_seed) const;
 
 public:
+    /**
+     * 结构查找器的输入
+     * @param search_center 输入中心(方块坐标)
+     * @param range 输入半径
+     * @param config 结构参数数据
+     */
     StructureFinder(const Pos &search_center, size_t range, BEStructureConfig config);
 
-    std::vector<Pos> find_candicate_positions(uint32_t seed);
+    StructureFinder() = delete;
+
+    std::vector<Pos> get_candicate_positions(uint32_t seed);
 };
 
 

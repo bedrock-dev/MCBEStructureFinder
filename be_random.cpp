@@ -14,25 +14,20 @@ uint32_t *mt_n_get(uint32_t seed, int n) {
     auto *last_arr = new uint32_t[n + 1];
     auto *result = new uint32_t[n];
     head_arr[0] = seed;
-    for (int i = 1; i < n + 1;
-         i++)
+    for (int i = 1; i < n + 1; i++)
         INIT(head_arr[i], head_arr[i - 1], i);
     uint32_t temp = head_arr[n];
-    for (int i = n; i < 397;
-         i++)
+    for (int i = n; i < 397; i++)
         INIT(temp, temp, i + 1);
     last_arr[0] = temp;
-    for (int i = 1; i < n + 1;
-         ++i)
+    for (int i = 1; i < n + 1; ++i)
         INIT(last_arr[i], last_arr[i - 1], i + 397);
-    for (int i = 0; i < n;
-         i++) {
+    for (int i = 0; i < n; i++) {
         temp = (head_arr[i] & 0x80000000) + (head_arr[i + 1] & 0x7fffffffu);
         head_arr[i] = (temp >> 1u) ^ last_arr[i];
         if (temp % 2 != 0)
             head_arr[i] = head_arr[i] ^ 0x9908b0df;
     }
-
     for (int i = 0; i < n;
          ++i) {
         uint32_t y = head_arr[i];
@@ -48,5 +43,5 @@ uint32_t *mt_n_get(uint32_t seed, int n) {
 }
 
 float int_2_float(uint32_t x) {
-    return x * 2.328306436538696e-10;
+    return static_cast<float >(x) * 2.328306436538696e-10f;
 }

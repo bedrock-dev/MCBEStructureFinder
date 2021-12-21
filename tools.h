@@ -59,6 +59,7 @@ struct Box {
 
 typedef Vec2i ChunkPos;
 typedef Vec2i Pos;
+typedef Vec2i AreaPos;
 
 template<typename T>
 inline bool between(const T &min, const T &max, const T &x) {
@@ -71,12 +72,11 @@ inline Pos scala_down(const Vec2i &origin, int SCALA) {
     return {cx / SCALA, cz / SCALA};
 }
 
-inline Box scala_up(const Pos &origin, int SCALA) {
-    auto x = origin.x * SCALA;
-    auto z = origin.z * SCALA;
-    return {
-            {x,             z},
-            {x + SCALA - 1, z + SCALA - 1}
+inline Box scala_up(const Pos &origin, int scala) {
+    auto x = origin.x * scala;
+    auto z = origin.z * scala;
+    return {{x,             z},
+            {x + scala - 1, z + scala - 1}
     };
 }
 

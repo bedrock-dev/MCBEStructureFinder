@@ -4,9 +4,8 @@
 
 #include "structure.h"
 
-#include "cubiomes/layers.h"
-#include "cubiomes/generator.h"
-#include "cubiomes/util.h"
+#include "layers.h"
+#include "generator.h"
 #include "be_random.h"
 #include <cstdio>
 #include <cmath>
@@ -39,7 +38,8 @@ int area_contain_biome_only(Layer *layer, int px, int pz, int r, const BiomeID f
     int z0 = (pz - r) >> 2;
     int w = ((r + px) >> 2) - x0 + 1;
     int h = ((r + pz) >> 2) - z0 + 1;
-    int *biomeIds = allocCache(layer, w, h);
+    int *biomeIds = nullptr;
+    // allocCache(layer, w, h);
     genArea(layer, biomeIds, x0, z0, w, h);
     const int area = w * h;
     for (int i = 0; i < area; i++) {
@@ -62,13 +62,15 @@ int is_valid_spawn_biome(int biome_id) {
 //There is an error within tens of meters
 Vec2i get_world_spawn_position(uint32_t seed) {
     LayerStack g;
-    setupOverworldGenerator(&g, MC_1_17);
+    //  setupOverworldGenerator(&g, MC_1_17);
     Layer *layer = &g.layers[L_NUM - 2];
     setLayerSeed(layer, seed);
     Vec2i pos{-1, -1};
     int step = 0;
     while (true) {
-        auto *biomeIds = allocCache(layer, 10, 10);
+        int *biomeIds = nullptr;
+
+        //allocCache(layer, 10, 10);
         genArea(layer, biomeIds, step, 0, 10, 10);
         for (int zo = 0; zo < 10; zo++) {
             for (int xo = 0; xo < 10; xo++) {
@@ -192,7 +194,7 @@ int check_ruined_portal() {
 //error
 int check_minshaft(uint32_t seed, ChunkPos pos) {
     uint32_t *mt = mt_n_get(seed, 2);
-    uint32_t chunk_seed = seed ^(mt[1] * pos.z) ^(mt[0] * pos.x);
+    uint32_t chunk_seed = seed ^ (mt[1] * pos.z) ^ (mt[0] * pos.x);
     uint32_t *mt2 = mt_n_get(chunk_seed, 3);
     double rf = int_2_float(mt2[1]);
     if (rf >= 0.004) return 0;
@@ -344,7 +346,8 @@ ChunkPos *generate_stronghold_positions(uint32_t seed, struct Layer *layer) {
 }
 
 BiomeID get_biome_at_pos(Layer *layer, int x, int z) {
-    int *ids = allocCache(layer, 1, 1);
+    int *ids = nullptr;
+    // allocCache(layer, 1, 1);
     genArea(layer, ids, x, z, 1, 1);
     auto biomeID = static_cast<BiomeID>(ids[0]);
     free(ids);
@@ -354,7 +357,7 @@ BiomeID get_biome_at_pos(Layer *layer, int x, int z) {
 int check_nether_fortress_1_14(uint32_t worldseed, ChunkPos pos) {
     int cx = pos.x >> 4;
     int cz = pos.z >> 4;
-    uint32_t seed = worldseed ^(cz << 4) ^cx;
+    uint32_t seed = worldseed ^ (cz << 4) ^ cx;
     uint32_t *mt = mt_n_get(seed, 4);
     if (mt[1] % 3 != 0) {
         return 0;

@@ -1,6 +1,6 @@
 #include "finder.h"
 #include "utils.h"
-#include "new_finder.h"
+#include "finder.h"
 
 int main(int argc, const char *argv[]) {
 //    if (argc != 3) {

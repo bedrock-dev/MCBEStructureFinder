@@ -25,6 +25,9 @@ add_library(
         ${BE_STRUCTUR_LIB_NAME}
         be_random.cpp
         tools.cpp
+        be_finder.cpp
+        structure.cpp
+
 )
 target_link_libraries(${BE_STRUCTUR_LIB_NAME} ${BIOME_LIB_NAME})
 

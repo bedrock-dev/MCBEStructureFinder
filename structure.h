@@ -8,9 +8,8 @@
 
 #endif //BSSTRUCTURRE_STRUCTURE_H
 
-#include "cubiomes/layers.h"
-#include "cubiomes/generator.h"
-#include "utils.h"
+#include "layers.h"
+#include "tools.h"
 
 enum BEStructureType {
     BEVillage,
