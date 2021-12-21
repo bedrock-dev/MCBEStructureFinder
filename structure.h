@@ -10,6 +10,7 @@
 
 #include "layers.h"
 #include "tools.h"
+#include "generator.h"
 
 enum BEStructureType {
     BEVillage,
@@ -150,8 +151,11 @@ constexpr enum BiomeID PILLAGER_OUTPOST_FILTER[] = {
 };
 
 
-//check a chunk will spawn a structure or not
+bool extra_feature_check(struct Generator *g, enum BEStructureType type, ChunkPos pos);
+
+//check a candidate chunk will spawn a structure or not
 int is_feature_chunk_overworld(enum BEStructureType type, Layer *layer, uint32_t seed, ChunkPos pos);
+
 
 int is_feature_chunk_nether(enum BEStructureType type, Layer *layer, uint32_t worldSeed, ChunkPos chunkPos);
 

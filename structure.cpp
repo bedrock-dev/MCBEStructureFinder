@@ -5,6 +5,7 @@
 #include "structure.h"
 
 #include "layers.h"
+#include "util.h"
 #include "generator.h"
 #include "be_random.h"
 #include <cstdio>
@@ -30,27 +31,49 @@ uint32_t cal_structure_seed(uint32_t worldSeed, int salt, int x, int z) {
 }
 
 
-int area_contain_biome_only(Layer *layer, int px, int pz, int r, const BiomeID filter[], size_t n) {
-    if (!layer)
-        return 0;
+bool area_contain_biome_only(struct Generator *g, int px, int pz, int r, const BiomeID filter[], size_t n) {
+    if (!g)return false;
     //use a 4*4 resolution to check
     int x0 = (px - r) >> 2;
     int z0 = (pz - r) >> 2;
     int w = ((r + px) >> 2) - x0 + 1;
     int h = ((r + pz) >> 2) - z0 + 1;
-    int *biomeIds = nullptr;
-    // allocCache(layer, w, h);
-    genArea(layer, biomeIds, x0, z0, w, h);
+    struct Range range{};
+    // 1:16, a.k.a. horizontal chunk scaling
+    range.scale = 4;
+    // Define the position and size for a horizontal area:
+    range.x = x0; //中心x
+    range.z = z0; //中心x
+    range.sx = w, range.sz = h; // size (width,height)
+    // Set the vertical range as a plane near sea level at scale 1:4.
+    range.y = 15, range.sy = 1;
+    int *biomeIds = allocCache(g, range);
+    genBiomes(g, biomeIds, range);
+
+
+//    int pix4cell = 4;
+//    int imgWidth = pix4cell*range.sx, imgHeight = pix4cell*range.sz;
+//    unsigned char biomeColors[256][3];
+//    initBiomeColors(biomeColors);
+//    auto *rgb = (unsigned char *) malloc(3*imgWidth*imgHeight);
+//    biomesToImage(rgb, biomeColors, biomeIds, range.sx, range.sz, pix4cell, 2);
+
+    // Save the RGB buffer to a PPM image file.
+//    savePPM("map.ppm", rgb, imgWidth, imgHeight);
+
+
+
     const int area = w * h;
     for (int i = 0; i < area; i++) {
         if (!find_in_filter(static_cast<BiomeID>(biomeIds[i]), filter, n)) {
             free(biomeIds);
-            return 0;
+            return false;
         }
     }
     free(biomeIds);
-    return 1;
+    return true;
 }
+
 
 int is_valid_spawn_biome(int biome_id) {
     return find_in_filter(static_cast<BiomeID>(biome_id), WORLD_SPAWN_FILTER,
@@ -134,24 +157,25 @@ int structure_location_check_1(const struct BEStructureConfig cfg, uint32_t worl
 
 int structure_location_check_2(const struct BEStructureConfig cfg,
                                uint32_t worldSeed, ChunkPos chunkPos) {
-    if (chunkPos.x < 0)
-        chunkPos.x -= cfg.spacing - 1;
-    if (chunkPos.z < 0)
-        chunkPos.z -= cfg.spacing - 1;
-    uint32_t seed = cal_structure_seed(worldSeed, cfg.salt, chunkPos.x / cfg.spacing, chunkPos.z / cfg.spacing);
-
-    uint32_t *mt = mt_n_get(seed, 4);
-    uint32_t r1 = mt[0] % cfg.spawnRange;
-    uint32_t r2 = mt[1] % cfg.spawnRange;
-    int xOff = chunkPos.x % cfg.spacing;
-    int zOff = chunkPos.z % cfg.spacing;
-    if (xOff < 0)
-        xOff += cfg.spacing - 1;
-    if (zOff < 0)
-        zOff += cfg.spacing - 1;
-    free(mt);
-    return r1 == xOff && r2 ==
-                         zOff;
+    return true;
+    //    if (chunkPos.x < 0)
+//        chunkPos.x -= cfg.spacing - 1;
+//    if (chunkPos.z < 0)
+//        chunkPos.z -= cfg.spacing - 1;
+//    uint32_t seed = cal_structure_seed(worldSeed, cfg.salt, chunkPos.x / cfg.spacing, chunkPos.z / cfg.spacing);
+//
+//    uint32_t *mt = mt_n_get(seed, 4);
+//    uint32_t r1 = mt[0] % cfg.spawnRange;
+//    uint32_t r2 = mt[1] % cfg.spawnRange;
+//    int xOff = chunkPos.x % cfg.spacing;
+//    int zOff = chunkPos.z % cfg.spacing;
+//    if (xOff < 0)
+//        xOff += cfg.spacing - 1;
+//    if (zOff < 0)
+//        zOff += cfg.spacing - 1;
+//    free(mt);
+//    return r1 == xOff && r2 ==
+//                         zOff;
 
 }
 
@@ -166,23 +190,23 @@ static int check_ocean_ruin() {
 
 
 int check_random_scattered(enum BEStructureType type, struct Layer *layer, uint32_t seed, ChunkPos pos) {
-    if (!structure_location_check_2(BE_RANDOM_SCATTERED, seed, pos)) {
-        return 0;
-    }
-    int x = pos.x * 16 + 8;
-    int z = pos.z * 16 + 8;
-    switch (type) {
-        case BEDesertTemple:
-            return area_contain_biome_only(layer, x, z, 0, DESERT_TEMPLE_FILTER, 2);
-        case BEJungleTemple:
-            return area_contain_biome_only(layer, x, z, 0, JUNGLE_TEMPLE_FILTER, 2);
-        case BEWitchHut:
-            return area_contain_biome_only(layer, x, z, 0, WITCH_HUT_FILTER, 2);
-        case BEIgloo:
-            return area_contain_biome_only(layer, x, z, 0, IGLOO_FILTER, 2);
-        default:
-            return 0;
-    }
+//    if (!structure_location_check_2(BE_RANDOM_SCATTERED, seed, pos)) {
+//        return 0;
+//    }
+//    int x = pos.x * 16 + 8;
+//    int z = pos.z * 16 + 8;
+//    switch (type) {
+//        case BEDesertTemple:
+//            return area_contain_biome_only(layer, x, z, 0, DESERT_TEMPLE_FILTER, 2);
+//        case BEJungleTemple:
+//            return area_contain_biome_only(layer, x, z, 0, JUNGLE_TEMPLE_FILTER, 2);
+//        case BEWitchHut:
+//            return area_contain_biome_only(layer, x, z, 0, WITCH_HUT_FILTER, 2);
+//        case BEIgloo:
+//            return area_contain_biome_only(layer, x, z, 0, IGLOO_FILTER, 2);
+//        default:
+//            return 0;
+//    }
 
 }
 
@@ -201,7 +225,7 @@ int check_minshaft(uint32_t seed, ChunkPos pos) {
     return mt2[2] % 80 < max(abs(pos.x), abs(pos.z));
 }
 
-int struct_position_valid(enum BEStructureType type, Layer *g, ChunkPos pos) {
+int struct_position_valid(struct Generator *g, enum BEStructureType type, ChunkPos pos) {
     int x = pos.x * 16 + 8;
     int z = pos.z * 16 + 8;
     switch (type) {
@@ -266,43 +290,53 @@ int is_feature_chunk_nether(enum BEStructureType type, Layer *layer, uint32_t wo
 }
 
 int is_feature_chunk_overworld(enum BEStructureType type, struct Layer *layer, uint32_t seed, ChunkPos pos) {
-    if (type == BEJungleTemple || type == BEDesertTemple || type == BEWitchHut || type == BEIgloo) {
-        return check_random_scattered(type, layer, seed, pos);
-    }
+//    if (type == BEJungleTemple || type == BEDesertTemple || type == BEWitchHut || type == BEIgloo) {
+//        return check_random_scattered(type, layer, seed, pos);
+//    }
+//
+//    switch (type) {
+//        case BEVillage:
+//            return structure_location_check_1(BE_VILLAGE, seed, pos) &&
+//                   struct_position_valid(BEVillage, layer, pos);
+//        case BEStronghold:
+//            return 0;
+//        case BEMineshaft:
+//            return check_minshaft(seed, pos);
+//        case BEOceanMonument:
+//            return structure_location_check_1(BE_OCEAN_MONUMENT, seed, pos) &&
+//                   struct_position_valid(BEOceanMonument, layer, pos);
+//        case BEOceanRuin:
+//            return structure_location_check_1(BE_OCEAN_RUIN, seed, pos) &&
+//                   struct_position_valid(BEOceanRuin, layer, pos);
+//        case BEWoodlandMansion:
+//            return structure_location_check_1(BE_WOODLAND_MANSION, seed, pos) &&
+//                   struct_position_valid(BEWoodlandMansion, layer, pos);
+//        case BEShipwreck:
+//            return structure_location_check_1(BE_SHIP_WREAK, seed, pos) &&
+//                   struct_position_valid(BEShipwreck, layer, pos);
+//        case BERuindPortal:
+//            return structure_location_check_2(BE_RUIN_PORTAL_OVERWORLD, seed, pos);
+//        case BEBuriedTreasure:
+//            return structure_location_check_2(BE_BURIED_TREASURE, seed, pos) &&
+//                   struct_position_valid(BEBuriedTreasure, layer, pos);
+//        case BEPillagerOutpost:
+//            return structure_location_check_1(BE_PILLAGER_OUTPOST, seed, pos) &&
+//                   struct_position_valid(BEPillagerOutpost, layer, pos);
+//        case BEEndcity:
+//            return 0;
+//        default:
+//            return 0;
+//    }
+}
 
+bool extra_feature_check(struct Generator *g, enum BEStructureType type, ChunkPos pos) {
     switch (type) {
-        case BEVillage:
-            return structure_location_check_1(BE_VILLAGE, seed, pos) &&
-                   struct_position_valid(BEVillage, layer, pos);
-        case BEStronghold:
-            return 0;
-        case BEMineshaft:
-            return check_minshaft(seed, pos);
         case BEOceanMonument:
-            return structure_location_check_1(BE_OCEAN_MONUMENT, seed, pos) &&
-                   struct_position_valid(BEOceanMonument, layer, pos);
-        case BEOceanRuin:
-            return structure_location_check_1(BE_OCEAN_RUIN, seed, pos) &&
-                   struct_position_valid(BEOceanRuin, layer, pos);
-        case BEWoodlandMansion:
-            return structure_location_check_1(BE_WOODLAND_MANSION, seed, pos) &&
-                   struct_position_valid(BEWoodlandMansion, layer, pos);
-        case BEShipwreck:
-            return structure_location_check_1(BE_SHIP_WREAK, seed, pos) &&
-                   struct_position_valid(BEShipwreck, layer, pos);
-        case BERuindPortal:
-            return structure_location_check_2(BE_RUIN_PORTAL_OVERWORLD, seed, pos);
-        case BEBuriedTreasure:
-            return structure_location_check_2(BE_BURIED_TREASURE, seed, pos) &&
-                   struct_position_valid(BEBuriedTreasure, layer, pos);
-        case BEPillagerOutpost:
-            return structure_location_check_1(BE_PILLAGER_OUTPOST, seed, pos) &&
-                   struct_position_valid(BEPillagerOutpost, layer, pos);
-        case BEEndcity:
-            return 0;
+            return struct_position_valid(g, BEOceanMonument, pos);
         default:
-            return 0;
+            return true;
     }
+    return true;
 }
 
 
@@ -364,5 +398,7 @@ int check_nether_fortress_1_14(uint32_t worldseed, ChunkPos pos) {
     }
     return pos.x == mt[2] % 8 + 16 * cx + 4 && pos.z == mt[3] % 8 + 16 + cz + 4;
 }
+
+
 
 

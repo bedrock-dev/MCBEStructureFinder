@@ -6,11 +6,17 @@
 #include "be_finder.h"
 
 int main() {
-    const Pos center = {1240, 5680};
-    StructureFinder finder(center, 1000, BE_OCEAN_MONUMENT);
-    auto p_list = finder.get_candicate_positions(0);
+    Generator g;
+    setupGenerator(&g, MC_1_18, 0);
+    uint64_t seed = 123LL;
+    applySeed(&g, 0, seed);
+    const Pos center = {3100, 2200};
+    StructureFinder finder(center, 5000, BE_OCEAN_MONUMENT);
+    auto p_list = finder.get_candicate_positions(seed);
     for (auto p: p_list) {
-        LOG("%d %d", p.x * 16 + 8, p.z * 16 + 8);
+        if (extra_feature_check(&g, BEOceanMonument, p)) {
+            LOG("%d %d", p.x * 16 + 8, p.z * 16 + 8);
+        }
     }
     return 0;
 }
